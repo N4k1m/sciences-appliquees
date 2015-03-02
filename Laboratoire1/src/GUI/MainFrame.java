@@ -1,16 +1,32 @@
 package GUI;
 
+import operations.Fourier;
+import signaux.Discretiseur;
+import signaux.Signal;
+import signaux.SignalPeriodique;
+
 /**
  *
  * @author Nakim
  */
 public class MainFrame extends javax.swing.JFrame
 {
+    private final SignalPanel panelSignal;
+    private final SignalPanel panelSpectre;
+
     //<editor-fold defaultstate="collapsed" desc="Constructor">
     public MainFrame()
     {
         // GUI Configuration
         initComponents();
+
+        this.panelSignal = new SignalPanel("Signaux", null, null);
+        this.panelSpectre = new SignalPanel("Spectres", null, null);
+
+        this.add(panelSignal);
+        this.add(panelSpectre);
+
+        this.pack();
     }
     //</editor-fold>
 
@@ -36,7 +52,7 @@ public class MainFrame extends javax.swing.JFrame
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Sciences Appliquées - Laboratoire 1");
-        getContentPane().setLayout(new java.awt.GridBagLayout());
+        getContentPane().setLayout(new java.awt.GridLayout());
 
         panelSignalOptions.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 3, 3, 3));
         java.awt.GridBagLayout panelSignalOptionsLayout = new java.awt.GridBagLayout();
@@ -146,6 +162,13 @@ public class MainFrame extends javax.swing.JFrame
         panelSignalOptions.add(spinnerOffset, gridBagConstraints);
 
         buttonGenerateSignal.setText("Générer & ajouter");
+        buttonGenerateSignal.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                buttonGenerateSignalActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 12;
@@ -154,11 +177,7 @@ public class MainFrame extends javax.swing.JFrame
         gridBagConstraints.weightx = 2.0;
         panelSignalOptions.add(buttonGenerateSignal, gridBagConstraints);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        getContentPane().add(panelSignalOptions, gridBagConstraints);
+        getContentPane().add(panelSignalOptions);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -179,6 +198,22 @@ public class MainFrame extends javax.swing.JFrame
         this.spinnerOffset.setVisible(rectImpulseSelected | diracImpulseSelected);
 
     }//GEN-LAST:event_comboBoxSignalsActionPerformed
+
+    private void buttonGenerateSignalActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonGenerateSignalActionPerformed
+    {//GEN-HEADEREND:event_buttonGenerateSignalActionPerformed
+        int sample = (int)spinnerSamples.getValue();
+        Discretiseur discretiseur = new Discretiseur(sample,0.0,1.0);
+
+        int amplitude = (int)spinnerAmplitude.getValue();
+        int frequence = (int)spinnerFrequence.getValue();
+        Signal signal = SignalPeriodique.getInstance(SignalPeriodique.SINUS,amplitude,frequence,0.0,discretiseur);
+        panelSignal.addSignal(signal, "Sinusoide", true);
+
+        // Calcul de la transformée de Fourier
+        Signal fourier = Fourier.fourier(signal);
+        Signal spectre = fourier.module();
+        panelSpectre.addSignal(spectre, "Spectre", true);
+    }//GEN-LAST:event_buttonGenerateSignalActionPerformed
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Main">
