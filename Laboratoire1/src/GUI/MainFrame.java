@@ -23,8 +23,8 @@ public class MainFrame extends javax.swing.JFrame
         this.panelSignal = new SignalPanel("Signaux", null, null);
         this.panelSpectre = new SignalPanel("Spectres", null, null);
 
-        this.add(panelSignal);
-        this.add(panelSpectre);
+        this.panelPlots.add(panelSignal);
+        this.panelPlots.add(panelSpectre);
 
         this.pack();
     }
@@ -35,6 +35,7 @@ public class MainFrame extends javax.swing.JFrame
     {
         java.awt.GridBagConstraints gridBagConstraints;
 
+        mainSplitPane = new javax.swing.JSplitPane();
         panelSignalOptions = new javax.swing.JPanel();
         labelSignal = new javax.swing.JLabel();
         comboBoxSignals = new javax.swing.JComboBox();
@@ -49,10 +50,12 @@ public class MainFrame extends javax.swing.JFrame
         labelOffset = new javax.swing.JLabel();
         spinnerOffset = new javax.swing.JSpinner();
         buttonGenerateSignal = new javax.swing.JButton();
+        panelPlots = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Sciences Appliquées - Laboratoire 1");
-        getContentPane().setLayout(new java.awt.GridLayout());
+
+        mainSplitPane.setOneTouchExpandable(true);
 
         panelSignalOptions.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 3, 3, 3));
         java.awt.GridBagLayout panelSignalOptionsLayout = new java.awt.GridBagLayout();
@@ -177,7 +180,13 @@ public class MainFrame extends javax.swing.JFrame
         gridBagConstraints.weightx = 2.0;
         panelSignalOptions.add(buttonGenerateSignal, gridBagConstraints);
 
-        getContentPane().add(panelSignalOptions);
+        mainSplitPane.setLeftComponent(panelSignalOptions);
+
+        panelPlots.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 3, 3, 3));
+        panelPlots.setLayout(new java.awt.GridLayout());
+        mainSplitPane.setRightComponent(panelPlots);
+
+        getContentPane().add(mainSplitPane, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -271,6 +280,8 @@ public class MainFrame extends javax.swing.JFrame
     private javax.swing.JLabel labelOffset;
     private javax.swing.JLabel labelSamples;
     private javax.swing.JLabel labelSignal;
+    private javax.swing.JSplitPane mainSplitPane;
+    private javax.swing.JPanel panelPlots;
     private javax.swing.JPanel panelSignalOptions;
     private javax.swing.JSpinner spinnerAmplitude;
     private javax.swing.JSpinner spinnerDuree;
