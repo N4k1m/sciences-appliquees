@@ -1,6 +1,7 @@
 package GUI;
 
 import Utils.MessageBoxes;
+import java.awt.GridBagConstraints;
 import math.Nombre;
 import operations.Convolution;
 import operations.Fourier;
@@ -23,7 +24,6 @@ public class MainFrame extends javax.swing.JFrame
     private final SignalPanel plotSignal;
     private final SignalPanel plotSpectre;
     private final SignalPanel plotPhase;
-    private int signalCount;
 
     // Tab Sinc
     private final SignalPanel plotSincTemp;
@@ -33,6 +33,7 @@ public class MainFrame extends javax.swing.JFrame
     private final SignalPanel plotConvolutionTemp;
     private final SignalPanel plotConvolutionFreq;
 
+    private int signalCount;
     private Signal lastSignal;
     private Signal lastSinc;
 
@@ -44,13 +45,27 @@ public class MainFrame extends javax.swing.JFrame
         this.updatePanelSignalOptions();
 
         // Tab Signals
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH; // Maximum width and height
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+
         this.plotSignal = new SignalPanel("Signaux", null, null);
-        this.panelPlotsSignals.add(this.plotSignal);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        this.panelPlotsSignals.add(this.plotSignal, gbc);
+
         this.plotSpectre = new SignalPanel("Spectres", null, null);
-        this.panelPlotsSignals.add(this.plotSpectre);
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        this.panelPlotsSignals.add(this.plotSpectre, gbc);
+
         this.plotPhase = new SignalPanel("Phases", null, null);
-        this.panelPlotsSignals.add(this.plotPhase);
-        this.signalCount = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.weightx = 2;
+        this.panelPlotsSignals.add(this.plotPhase, gbc);
 
         // Tab Sinc & convolution
         this.plotSincTemp = new SignalPanel("Sinc : Domaine temporel", null, null);
@@ -64,6 +79,7 @@ public class MainFrame extends javax.swing.JFrame
 
         this.pack();
 
+        this.signalCount = 0;
         this.lastSignal = null;
         this.lastSinc = null;
     }
@@ -131,12 +147,14 @@ public class MainFrame extends javax.swing.JFrame
         });
 
         panelPlotsSignals.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 3, 3, 3));
-        panelPlotsSignals.setLayout(new java.awt.GridLayout(2, 2));
+        panelPlotsSignals.setLayout(new java.awt.GridBagLayout());
         tabbedPanePlots.addTab("Signaux", panelPlotsSignals);
 
         panelPlotsSincConv.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 3, 3, 3));
         panelPlotsSincConv.setLayout(new java.awt.GridLayout(2, 2));
         tabbedPanePlots.addTab("Sinc et convolution", panelPlotsSincConv);
+
+        panelPlotsFiltrage.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 3, 3, 3));
         tabbedPanePlots.addTab("Filtrage", panelPlotsFiltrage);
 
         splitPaneSignals.setRightComponent(tabbedPanePlots);
