@@ -2,6 +2,7 @@ package GUI;
 
 import Utils.MessageBoxes;
 import math.Nombre;
+import operations.Convolution;
 import operations.Fourier;
 import operations.SignalOperations;
 import signaux.Discretiseur;
@@ -10,6 +11,7 @@ import signaux.ImpulsionRectangulaire;
 import signaux.Signal;
 import signaux.SignalAnalogique;
 import signaux.SignalPeriodique;
+import signaux.SinusCardinal;
 
 /**
  *
@@ -21,11 +23,16 @@ public class MainFrame extends javax.swing.JFrame
     private final SignalPanel plotSignal;
     private final SignalPanel plotSpectre;
     private final SignalPanel plotPhase;
-    
+    private int signalCount;
+
     // Tab Sinc
     private final SignalPanel plotSincTemp;
     private final SignalPanel plotSincFreq;
-    
+
+    // Tab Convolution
+    private final SignalPanel plotConvolutionTemp;
+    private final SignalPanel plotConvolutionFreq;
+
     private Signal lastSignal;
     private Signal lastSinc;
 
@@ -43,33 +50,38 @@ public class MainFrame extends javax.swing.JFrame
         this.panelPlotsSignals.add(this.plotSpectre);
         this.plotPhase = new SignalPanel("Phases", null, null);
         this.panelPlotsSignals.add(this.plotPhase);
-        
-        // Tab Sinc
-        this.plotSincTemp = new SignalPanel("Signal", null, null);
-        this.panelPlotsSinc.add(this.plotSincTemp);
-        this.plotSincFreq = new SignalPanel("Spectre", null, null);
-        this.panelPlotsSinc.add(this.plotSincFreq);
+        this.signalCount = 0;
+
+        // Tab Sinc & convolution
+        this.plotSincTemp = new SignalPanel("Sinc : Domaine temporel", null, null);
+        this.panelPlotsSincConv.add(this.plotSincTemp);
+        this.plotSincFreq = new SignalPanel("Sinc : Domaine fréquentiel (spectre)", null, null);
+        this.panelPlotsSincConv.add(this.plotSincFreq);
+        this.plotConvolutionTemp = new SignalPanel("Convolution : Domaine temporel", null, null);
+        this.panelPlotsSincConv.add(this.plotConvolutionTemp);
+        this.plotConvolutionFreq = new SignalPanel("Convolution : Domaine fréquentiel (spectre)", null, null);
+        this.panelPlotsSincConv.add(this.plotConvolutionFreq);
 
         this.pack();
-        
+
         this.lastSignal = null;
         this.lastSinc = null;
     }
     //</editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void initComponents()
+    {
         java.awt.GridBagConstraints gridBagConstraints;
 
         splitPaneSignals = new javax.swing.JSplitPane();
         tabbedPanePlots = new javax.swing.JTabbedPane();
         panelPlotsSignals = new javax.swing.JPanel();
-        panelPlotsSinc = new javax.swing.JPanel();
-        panelPlotsConvolution = new javax.swing.JPanel();
+        panelPlotsSincConv = new javax.swing.JPanel();
         panelPlotsFiltrage = new javax.swing.JPanel();
         panelOptions = new javax.swing.JPanel();
         buttonClearAll = new javax.swing.JButton();
-        panelSincOptions = new javax.swing.JPanel();
+        panelSinc = new javax.swing.JPanel();
         labelAmplitudeSinc = new javax.swing.JLabel();
         spinnerAmplitudeSinc = new javax.swing.JSpinner();
         labelDureeSinc = new javax.swing.JLabel();
@@ -102,48 +114,59 @@ public class MainFrame extends javax.swing.JFrame
         spinnerOrigineDisc = new javax.swing.JSpinner();
         labelDureeDisc = new javax.swing.JLabel();
         spinnerDureeDisc = new javax.swing.JSpinner();
+        panelConvolution = new javax.swing.JPanel();
+        checkBoxMakeConvolution = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Sciences Appliquées - Laboratoire 1");
 
         splitPaneSignals.setOneTouchExpandable(true);
 
+        tabbedPanePlots.addChangeListener(new javax.swing.event.ChangeListener()
+        {
+            public void stateChanged(javax.swing.event.ChangeEvent evt)
+            {
+                tabbedPanePlotsStateChanged(evt);
+            }
+        });
+
         panelPlotsSignals.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 3, 3, 3));
         panelPlotsSignals.setLayout(new java.awt.GridLayout(2, 2));
         tabbedPanePlots.addTab("Signaux", panelPlotsSignals);
 
-        panelPlotsSinc.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 3, 3, 3));
-        panelPlotsSinc.setLayout(new java.awt.GridLayout(1, 2));
-        tabbedPanePlots.addTab("Sinc", panelPlotsSinc);
-        tabbedPanePlots.addTab("Convolution", panelPlotsConvolution);
+        panelPlotsSincConv.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 3, 3, 3));
+        panelPlotsSincConv.setLayout(new java.awt.GridLayout(2, 2));
+        tabbedPanePlots.addTab("Sinc et convolution", panelPlotsSincConv);
         tabbedPanePlots.addTab("Filtrage", panelPlotsFiltrage);
 
         splitPaneSignals.setRightComponent(tabbedPanePlots);
 
         panelOptions.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 3, 3, 3));
         java.awt.GridBagLayout panelSignalOptionsLayout = new java.awt.GridBagLayout();
-        panelSignalOptionsLayout.columnWidths = new int[] {0};
-        panelSignalOptionsLayout.rowHeights = new int[] {0, 3, 0, 3, 0, 3, 0};
+        panelSignalOptionsLayout.columnWidths = new int[] {0, 5, 0};
+        panelSignalOptionsLayout.rowHeights = new int[] {0, 3, 0, 3, 0, 3, 0, 3, 0};
         panelOptions.setLayout(panelSignalOptionsLayout);
 
         buttonClearAll.setText("Tout effacer");
-        buttonClearAll.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        buttonClearAll.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 buttonClearAllActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         panelOptions.add(buttonClearAll, gridBagConstraints);
 
-        panelSincOptions.setBorder(javax.swing.BorderFactory.createTitledBorder("Paramètres du sinc"));
+        panelSinc.setBorder(javax.swing.BorderFactory.createTitledBorder("Paramètres du sinc"));
         java.awt.GridBagLayout panelSincLayout = new java.awt.GridBagLayout();
         panelSincLayout.columnWidths = new int[] {0, 5, 0};
         panelSincLayout.rowHeights = new int[] {0, 3, 0, 3, 0, 3, 0};
-        panelSincOptions.setLayout(panelSincLayout);
+        panelSinc.setLayout(panelSincLayout);
 
         labelAmplitudeSinc.setText("Amplitude :");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -151,15 +174,15 @@ public class MainFrame extends javax.swing.JFrame
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        panelSincOptions.add(labelAmplitudeSinc, gridBagConstraints);
+        panelSinc.add(labelAmplitudeSinc, gridBagConstraints);
 
-        spinnerAmplitudeSinc.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(1), Integer.valueOf(1), null, Integer.valueOf(1)));
+        spinnerAmplitudeSinc.setModel(new javax.swing.SpinnerNumberModel(Double.valueOf(1.0d), Double.valueOf(1.0d), null, Double.valueOf(1.0d)));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        panelSincOptions.add(spinnerAmplitudeSinc, gridBagConstraints);
+        panelSinc.add(spinnerAmplitudeSinc, gridBagConstraints);
 
         labelDureeSinc.setText("Durée :");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -167,7 +190,7 @@ public class MainFrame extends javax.swing.JFrame
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        panelSincOptions.add(labelDureeSinc, gridBagConstraints);
+        panelSinc.add(labelDureeSinc, gridBagConstraints);
 
         spinnerDureeSinc.setModel(new javax.swing.SpinnerNumberModel(Double.valueOf(0.0d), Double.valueOf(0.0d), null, Double.valueOf(0.1d)));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -175,7 +198,7 @@ public class MainFrame extends javax.swing.JFrame
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        panelSincOptions.add(spinnerDureeSinc, gridBagConstraints);
+        panelSinc.add(spinnerDureeSinc, gridBagConstraints);
 
         labelOffsetSinc.setText("Offset :");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -183,7 +206,7 @@ public class MainFrame extends javax.swing.JFrame
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        panelSincOptions.add(labelOffsetSinc, gridBagConstraints);
+        panelSinc.add(labelOffsetSinc, gridBagConstraints);
 
         spinnerOffsetSinc.setModel(new javax.swing.SpinnerNumberModel(Double.valueOf(0.0d), null, null, Double.valueOf(0.1d)));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -191,11 +214,13 @@ public class MainFrame extends javax.swing.JFrame
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        panelSincOptions.add(spinnerOffsetSinc, gridBagConstraints);
+        panelSinc.add(spinnerOffsetSinc, gridBagConstraints);
 
         buttonGenerateSinc.setText("Générer");
-        buttonGenerateSinc.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        buttonGenerateSinc.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 buttonGenerateSincActionPerformed(evt);
             }
         });
@@ -204,14 +229,14 @@ public class MainFrame extends javax.swing.JFrame
         gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        panelSincOptions.add(buttonGenerateSinc, gridBagConstraints);
+        panelSinc.add(buttonGenerateSinc, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        panelOptions.add(panelSincOptions, gridBagConstraints);
+        panelOptions.add(panelSinc, gridBagConstraints);
 
         panelSignal.setBorder(javax.swing.BorderFactory.createTitledBorder("Paramètres des signaux"));
         java.awt.GridBagLayout paneSignalsOptionsLayout = new java.awt.GridBagLayout();
@@ -228,8 +253,10 @@ public class MainFrame extends javax.swing.JFrame
         panelSignal.add(labelTypeSig, gridBagConstraints);
 
         comboBoxSig.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Sinusoidale", "Triangulaire", "Rectangulaire", "Dents de scie", "DC ou continu", "Impulsion rectangulaire", "Impulsion de Dirac", "Byte" }));
-        comboBoxSig.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        comboBoxSig.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 comboBoxSigActionPerformed(evt);
             }
         });
@@ -262,7 +289,7 @@ public class MainFrame extends javax.swing.JFrame
         gridBagConstraints.weightx = 1.0;
         panelSignal.add(labelAmplitudeSig, gridBagConstraints);
 
-        spinnerAmplitudeSig.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(1), Integer.valueOf(1), null, Integer.valueOf(1)));
+        spinnerAmplitudeSig.setModel(new javax.swing.SpinnerNumberModel(Double.valueOf(1.0d), Double.valueOf(1.0d), null, Double.valueOf(1.0d)));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
@@ -278,7 +305,7 @@ public class MainFrame extends javax.swing.JFrame
         gridBagConstraints.weightx = 1.0;
         panelSignal.add(labelFrequenceSig, gridBagConstraints);
 
-        spinnerFrequenceSig.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(1), Integer.valueOf(1), null, Integer.valueOf(1)));
+        spinnerFrequenceSig.setModel(new javax.swing.SpinnerNumberModel(Double.valueOf(1.0d), Double.valueOf(1.0d), null, Double.valueOf(1.0d)));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 6;
@@ -333,8 +360,10 @@ public class MainFrame extends javax.swing.JFrame
         panelSignal.add(textFieldByteSig, gridBagConstraints);
 
         checkBoxComposanteContinueSig.setText("Composante continue :");
-        checkBoxComposanteContinueSig.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        checkBoxComposanteContinueSig.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 checkBoxComposanteContinueSigActionPerformed(evt);
             }
         });
@@ -355,8 +384,10 @@ public class MainFrame extends javax.swing.JFrame
         panelSignal.add(spinnerComposanteContinueSig, gridBagConstraints);
 
         buttonGenerateSignal.setText("Générer");
-        buttonGenerateSignal.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        buttonGenerateSignal.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 buttonGenerateSignalActionPerformed(evt);
             }
         });
@@ -432,6 +463,19 @@ public class MainFrame extends javax.swing.JFrame
         gridBagConstraints.weightx = 1.0;
         panelOptions.add(panelDiscretiseur, gridBagConstraints);
 
+        panelConvolution.setBorder(javax.swing.BorderFactory.createTitledBorder("Paramètres de la convolution"));
+        panelConvolution.setLayout(new java.awt.GridLayout());
+
+        checkBoxMakeConvolution.setText("<html>Réaliser la convolution temporelle<br>entre le dernier signal généré et le sinc</html>");
+        panelConvolution.add(checkBoxMakeConvolution);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        panelOptions.add(panelConvolution, gridBagConstraints);
+
         splitPaneSignals.setLeftComponent(panelOptions);
 
         getContentPane().add(splitPaneSignals, java.awt.BorderLayout.CENTER);
@@ -440,12 +484,19 @@ public class MainFrame extends javax.swing.JFrame
     }// </editor-fold>//GEN-END:initComponents
 
     //<editor-fold defaultstate="collapsed" desc="Private functions">
+    private void updateTextFieldSignalName()
+    {
+        // Update the signal name textfield
+        this.textFieldNomSig.setText(
+            String.valueOf(this.comboBoxSig.getSelectedItem())
+                + " " + String.valueOf(signalCount + 1));
+    }
+
     private void updatePanelSignalOptions()
     {
         String signalName = String.valueOf(this.comboBoxSig.getSelectedItem());
 
-        // Update the signal name textfield
-        this.textFieldNomSig.setText(signalName);
+        this.updateTextFieldSignalName();
 
         boolean rectImpulseSelected  = signalName.equalsIgnoreCase("Impulsion rectangulaire");
         boolean diracImpulseSelected = signalName.equalsIgnoreCase("Impulsion de Dirac");
@@ -458,26 +509,25 @@ public class MainFrame extends javax.swing.JFrame
         // Change widgets visibility
         this.labelFrequenceSig.setVisible(periodicSignalSelected);
         this.spinnerFrequenceSig.setVisible(periodicSignalSelected);
-        
+
         this.labelDureeSig.setVisible(rectImpulseSelected);
         this.spinnerDureeSig.setVisible(rectImpulseSelected);
 
         this.labelOffsetSig.setVisible(rectImpulseSelected || diracImpulseSelected);
         this.spinnerOffsetSig.setVisible(rectImpulseSelected || diracImpulseSelected);
-        
+
         this.labelAmplitudeSig.setVisible(!diracImpulseSelected);
         this.spinnerAmplitudeSig.setVisible(!diracImpulseSelected);
-        
+
         this.labelByteSig.setVisible(byteSelected);
         this.textFieldByteSig.setVisible(byteSelected);
     }
     //</editor-fold>
-    
+
     //<editor-fold defaultstate="collapsed" desc="Events handlers">
     private void comboBoxSigActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_comboBoxSigActionPerformed
     {//GEN-HEADEREND:event_comboBoxSigActionPerformed
         this.updatePanelSignalOptions();
-
     }//GEN-LAST:event_comboBoxSigActionPerformed
 
     private void buttonGenerateSignalActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonGenerateSignalActionPerformed
@@ -488,46 +538,55 @@ public class MainFrame extends javax.swing.JFrame
             if (signalName.isEmpty())
                 throw new Exception("Nom du signal invalide");
 
-            int sample = (int)spinnerSamplesDisc.getValue();
-            int amplitude = (int)spinnerAmplitudeSig.getValue();
-            Discretiseur discretiseur = new Discretiseur(sample,0.0,1.0);
+            // Get discretiseur parameters
+            int samples = (int)spinnerSamplesDisc.getValue();
+            double origine = (double)this.spinnerOrigineDisc.getValue();
+            double duree = (double)this.spinnerDureeDisc.getValue();
+            Discretiseur discretiseur = new Discretiseur(samples, origine, duree);
+
+            double amplitude = (double)spinnerAmplitudeSig.getValue();
 
             String signalType = String.valueOf(this.comboBoxSig.getSelectedItem());
             switch(signalType)
             {
                 case "Sinusoidale":
                 {
-                    int frequence = (int)spinnerFrequenceSig.getValue();
-                    lastSignal = SignalPeriodique.getInstance(SignalPeriodique.SINUS, amplitude, frequence, 0.0, discretiseur);
+                    double frequence = (double)spinnerFrequenceSig.getValue();
+                    lastSignal = SignalPeriodique.getInstance(
+                        SignalPeriodique.SINUS, amplitude, frequence, 0.0, discretiseur);
                     break;
                 }
                 case "Triangulaire":
                 {
-                    int frequence = (int)spinnerFrequenceSig.getValue();
-                    lastSignal = SignalPeriodique.getInstance(SignalPeriodique.TRIANGLE, amplitude, frequence, 0.0, discretiseur);
+                    double frequence = (double)spinnerFrequenceSig.getValue();
+                    lastSignal = SignalPeriodique.getInstance(
+                        SignalPeriodique.TRIANGLE, amplitude, frequence, 0.0, discretiseur);
                     break;
                 }
                 case "Rectangulaire":
                 {
-                    int frequence = (int)spinnerFrequenceSig.getValue();
-                    lastSignal = SignalPeriodique.getInstance(SignalPeriodique.CARRE, amplitude, frequence, 0.0, discretiseur);
+                    double frequence = (double)spinnerFrequenceSig.getValue();
+                    lastSignal = SignalPeriodique.getInstance(
+                        SignalPeriodique.CARRE, amplitude, frequence, 0.0, discretiseur);
                     break;
                 }
                 case "Dents de scie":
                 {
-                    int frequence = (int)spinnerFrequenceSig.getValue();
-                    lastSignal = SignalPeriodique.getInstance(SignalPeriodique.SCIE, amplitude, frequence, 0.0, discretiseur);
+                    double frequence = (double)spinnerFrequenceSig.getValue();
+                    lastSignal = SignalPeriodique.getInstance(
+                        SignalPeriodique.SCIE, amplitude, frequence, 0.0, discretiseur);
                     break;
                 }
                 case "DC ou continu":
                 {
-                    lastSignal = SignalAnalogique.getInstance(SignalAnalogique.CONSTANT, new Nombre(amplitude, 0), discretiseur);
+                    lastSignal = SignalAnalogique.getInstance(
+                        SignalAnalogique.CONSTANT, new Nombre(amplitude, 0), discretiseur);
                     break;
                 }
                 case "Impulsion rectangulaire":
                 {
                     double retard = (double)spinnerOffsetSig.getValue();
-                    double duree  = (double)spinnerDureeSig.getValue();
+                    duree  = (double)spinnerDureeSig.getValue();
                     lastSignal = new ImpulsionRectangulaire(discretiseur, amplitude, retard, duree);
                     break;
                 }
@@ -542,9 +601,9 @@ public class MainFrame extends javax.swing.JFrame
                     String byteString = this.textFieldByteSig.getText();
                     if (byteString.length() != 8)
                         throw new Exception("Le nombre de bits est différent de 8");
-                    
+
                     // Create byte signal
-                    lastSignal = new ImpulsionRectangulaire(discretiseur, (byteString.charAt(0) == '0') ? 0 : 1, 0.0, 0.125);
+                    lastSignal = new ImpulsionRectangulaire(discretiseur, (byteString.charAt(0) == '0') ? 0 : amplitude, 0.0, 0.125);
                     for(int i = 1; i < 8; i++)
                         lastSignal = SignalOperations.somme(lastSignal, new ImpulsionRectangulaire(discretiseur, (byteString.charAt(i) == '0') ? 0 : 1, i/8.0, 0.125));
                     break;
@@ -552,9 +611,8 @@ public class MainFrame extends javax.swing.JFrame
                 default:
                     throw new Exception("Signal non reconnu");
             }
-            
+
             // Ajout d'une composante continue
-            
             if (this.checkBoxComposanteContinueSig.isSelected())
             {
                 int DC = (int)this.spinnerComposanteContinueSig.getValue();
@@ -573,6 +631,9 @@ public class MainFrame extends javax.swing.JFrame
             plotSpectre.addSignal(fourier.module(), signalName, false);
             // Ajout de l'argument (phase)
             this.plotPhase.addSignal(fourier.argument(), signalName, false);
+
+            this.signalCount++;
+            this.updateTextFieldSignalName();
         }
         catch (Exception e)
         {
@@ -582,9 +643,17 @@ public class MainFrame extends javax.swing.JFrame
 
     private void buttonClearAllActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonClearAllActionPerformed
     {//GEN-HEADEREND:event_buttonClearAllActionPerformed
+        this.signalCount = 0;
+        this.updateTextFieldSignalName();
+
+        // Signal
         this.plotSignal.clear();
         this.plotSpectre.clear();
         this.plotPhase.clear();
+
+        // Sinc
+        this.plotSincTemp.clear();
+        this.plotSincFreq.clear();
     }//GEN-LAST:event_buttonClearAllActionPerformed
 
     private void checkBoxComposanteContinueSigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxComposanteContinueSigActionPerformed
@@ -592,10 +661,73 @@ public class MainFrame extends javax.swing.JFrame
     }//GEN-LAST:event_checkBoxComposanteContinueSigActionPerformed
 
     private void buttonGenerateSincActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonGenerateSincActionPerformed
-        double amplitude = (double)this.spinnerAmplitudeSinc.getValue();
-        double duree = (double)this.spinnerDureeSinc.getValue();
-        double offset = (double)this.spinnerOffsetSinc.getValue();
+
+        // Get discretiseur parameters
+        int samples = (int)spinnerSamplesDisc.getValue();
+        double origine = (double)this.spinnerOrigineDisc.getValue();
+        double duree = (double)this.spinnerDureeDisc.getValue();
+        Discretiseur discretiseur = new Discretiseur(samples, origine, duree);
+
+        // Get sinc parameters
+        double amplitudeSinc = (double)this.spinnerAmplitudeSinc.getValue();
+        double dureeSinc = (double)this.spinnerDureeSinc.getValue();
+        double offsetSinc = (double)this.spinnerOffsetSinc.getValue();
+
+        // Create sinc
+        this.lastSinc = new SinusCardinal(discretiseur, amplitudeSinc, offsetSinc, dureeSinc);
+
+        // Sinus cardinal dans le domaine temporel
+        this.plotSincTemp.addSignal(this.lastSinc, "Sinus Cardinal", true);
+
+        // Sinus cardinal dans le domaine fréquentiel
+        Signal fourier = Fourier.fourier(this.lastSinc);
+        this.plotSincFreq.addSignal(fourier.module(), "Sinus Cardinal", true);
+
+        // Convolution
+        if (this.checkBoxMakeConvolution.isSelected())
+        {
+            Signal convolution = Convolution.convolution(
+                this.lastSignal, this.lastSinc);
+            this.plotConvolutionTemp.addSignal(convolution, "Convolution", true);
+
+            fourier = Fourier.fourier(convolution);
+            this.plotConvolutionFreq.addSignal(fourier.module(), "Convolution", true);
+        }
     }//GEN-LAST:event_buttonGenerateSincActionPerformed
+
+    private void tabbedPanePlotsStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_tabbedPanePlotsStateChanged
+    {//GEN-HEADEREND:event_tabbedPanePlotsStateChanged
+        switch(this.tabbedPanePlots.getSelectedIndex())
+        {
+            // Tab "Signaux"
+            case 0:
+                this.panelSignal.setVisible(true);
+                this.panelSinc.setVisible(false);
+                this.panelConvolution.setVisible(false);
+                break;
+            // Tab "Sinc et Convolution"
+            case 1:
+                this.panelSignal.setVisible(false);
+                this.panelSinc.setVisible(true);
+                this.panelConvolution.setVisible(this.signalCount > 0);
+                if (this.signalCount > 0)
+                {
+                    this.panelConvolution.setVisible(true);
+                }
+                else
+                {
+                    this.panelConvolution.setVisible(false);
+                    this.checkBoxMakeConvolution.setSelected(false);
+                }
+                break;
+            // Tab "Filtrage"
+            case 2:
+                this.panelSignal.setVisible(false);
+                this.panelSinc.setVisible(false);
+                this.panelConvolution.setVisible(false);
+                break;
+        }
+    }//GEN-LAST:event_tabbedPanePlotsStateChanged
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Main">
@@ -649,6 +781,7 @@ public class MainFrame extends javax.swing.JFrame
     private javax.swing.JButton buttonGenerateSignal;
     private javax.swing.JButton buttonGenerateSinc;
     private javax.swing.JCheckBox checkBoxComposanteContinueSig;
+    private javax.swing.JCheckBox checkBoxMakeConvolution;
     private javax.swing.JComboBox comboBoxSig;
     private javax.swing.JLabel labelAmplitudeSig;
     private javax.swing.JLabel labelAmplitudeSinc;
@@ -663,14 +796,14 @@ public class MainFrame extends javax.swing.JFrame
     private javax.swing.JLabel labelOrigineDisc;
     private javax.swing.JLabel labelSamplesDisc;
     private javax.swing.JLabel labelTypeSig;
+    private javax.swing.JPanel panelConvolution;
     private javax.swing.JPanel panelDiscretiseur;
     private javax.swing.JPanel panelOptions;
-    private javax.swing.JPanel panelPlotsConvolution;
     private javax.swing.JPanel panelPlotsFiltrage;
     private javax.swing.JPanel panelPlotsSignals;
-    private javax.swing.JPanel panelPlotsSinc;
+    private javax.swing.JPanel panelPlotsSincConv;
     private javax.swing.JPanel panelSignal;
-    private javax.swing.JPanel panelSincOptions;
+    private javax.swing.JPanel panelSinc;
     private javax.swing.JSpinner spinnerAmplitudeSig;
     private javax.swing.JSpinner spinnerAmplitudeSinc;
     private javax.swing.JSpinner spinnerComposanteContinueSig;
