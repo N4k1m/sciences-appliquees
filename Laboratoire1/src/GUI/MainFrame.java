@@ -165,6 +165,11 @@ public class MainFrame extends javax.swing.JFrame
         labelFrequencePasseHaut = new javax.swing.JLabel();
         spinnerFrequencePasseHaut = new javax.swing.JSpinner();
         buttonFilterLastSignal = new javax.swing.JButton();
+        checkBoxPasseBande = new javax.swing.JCheckBox();
+        labelFrequenceInfPasseBande = new javax.swing.JLabel();
+        spinnerFrequenceInfPasseBande = new javax.swing.JSpinner();
+        labelFrequenceSupPasseBande = new javax.swing.JLabel();
+        spinnerFrequenceSupPasseBande = new javax.swing.JSpinner();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Sciences Appliquées - Laboratoire 1");
@@ -534,7 +539,7 @@ public class MainFrame extends javax.swing.JFrame
         panelFiltrage.setBorder(javax.swing.BorderFactory.createTitledBorder("Paramètres des filtrages"));
         java.awt.GridBagLayout panelFiltrageLayout = new java.awt.GridBagLayout();
         panelFiltrageLayout.columnWidths = new int[] {0, 5, 0};
-        panelFiltrageLayout.rowHeights = new int[] {0, 3, 0, 3, 0, 3, 0, 3, 0};
+        panelFiltrageLayout.rowHeights = new int[] {0, 3, 0, 3, 0, 3, 0, 3, 0, 3, 0, 3, 0, 3, 0};
         panelFiltrage.setLayout(panelFiltrageLayout);
 
         checkBoxPasseBas.setText("Filtrage passe-bass idéal");
@@ -605,7 +610,7 @@ public class MainFrame extends javax.swing.JFrame
         gridBagConstraints.weightx = 1.0;
         panelFiltrage.add(spinnerFrequencePasseHaut, gridBagConstraints);
 
-        buttonFilterLastSignal.setText("Filtrer dernier signal généré");
+        buttonFilterLastSignal.setText("Filtrer le dernier signal généré");
         buttonFilterLastSignal.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -615,11 +620,61 @@ public class MainFrame extends javax.swing.JFrame
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 14;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 2.0;
         panelFiltrage.add(buttonFilterLastSignal, gridBagConstraints);
+
+        checkBoxPasseBande.setText("Filtrage passe-bande idéal");
+        checkBoxPasseBande.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                checkBoxPasseBandeActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 2.0;
+        panelFiltrage.add(checkBoxPasseBande, gridBagConstraints);
+
+        labelFrequenceInfPasseBande.setText("Freq. de coupure inférieure (Hz) :");
+        labelFrequenceInfPasseBande.setEnabled(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        panelFiltrage.add(labelFrequenceInfPasseBande, gridBagConstraints);
+
+        spinnerFrequenceInfPasseBande.setModel(new javax.swing.SpinnerNumberModel(Double.valueOf(1.0d), Double.valueOf(1.0d), null, Double.valueOf(1.0d)));
+        spinnerFrequenceInfPasseBande.setEnabled(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        panelFiltrage.add(spinnerFrequenceInfPasseBande, gridBagConstraints);
+
+        labelFrequenceSupPasseBande.setText("Freq. de coupure supérieure (Hz) :");
+        labelFrequenceSupPasseBande.setEnabled(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        panelFiltrage.add(labelFrequenceSupPasseBande, gridBagConstraints);
+
+        spinnerFrequenceSupPasseBande.setModel(new javax.swing.SpinnerNumberModel(Double.valueOf(1.0d), Double.valueOf(1.0d), null, Double.valueOf(1.0d)));
+        spinnerFrequenceSupPasseBande.setEnabled(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        panelFiltrage.add(spinnerFrequenceSupPasseBande, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -971,12 +1026,36 @@ public class MainFrame extends javax.swing.JFrame
                 Signal signalFiltre = Fourier.fourierI(fourierFiltre, 0);
                 this.plotFiltragePasseHautTemp.addSignal(signalFiltre, lastSignalName, true);
             }
+
+            // Filtre passe-bande
+            if (this.checkBoxPasseBande.isSelected())
+            {
+                double frequenceCoupureInf = (double)this.spinnerFrequenceInfPasseBande.getValue();
+                double frequenceCoupureSup = (double)this.spinnerFrequenceSupPasseBande.getValue();
+
+                // Domaine frequentiel
+                Signal fourierFiltre = FiltrageLineaire.filtrePasseBandeFourier(lastSignal, frequenceCoupureInf, frequenceCoupureSup);
+                this.plotFiltragePasseBandeFreq.addSignal(fourierFiltre.module(), lastSignalName, true);
+
+                // Domaine temporel
+                Signal signalFiltre = Fourier.fourierI(fourierFiltre, 0);
+                this.plotFiltragePasseBandeTemp.addSignal(signalFiltre, lastSignalName, true);
+            }
         }
         catch (Exception e)
         {
             MessageBoxes.ShowError(this, e.getMessage(), "Une erreur s'est produite");
         }
     }//GEN-LAST:event_buttonFilterLastSignalActionPerformed
+
+    private void checkBoxPasseBandeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_checkBoxPasseBandeActionPerformed
+    {//GEN-HEADEREND:event_checkBoxPasseBandeActionPerformed
+        boolean enable = this.checkBoxPasseBande.isSelected();
+        this.labelFrequenceInfPasseBande.setEnabled(enable);
+        this.spinnerFrequenceInfPasseBande.setEnabled(enable);
+        this.labelFrequenceSupPasseBande.setEnabled(enable);
+        this.spinnerFrequenceSupPasseBande.setEnabled(enable);
+    }//GEN-LAST:event_checkBoxPasseBandeActionPerformed
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Main">
@@ -1032,6 +1111,7 @@ public class MainFrame extends javax.swing.JFrame
     private javax.swing.JButton buttonGenerateSinc;
     private javax.swing.JCheckBox checkBoxComposanteContinueSig;
     private javax.swing.JCheckBox checkBoxMakeConvolution;
+    private javax.swing.JCheckBox checkBoxPasseBande;
     private javax.swing.JCheckBox checkBoxPasseBas;
     private javax.swing.JCheckBox checkBoxPasseHaut;
     private javax.swing.JComboBox comboBoxSig;
@@ -1041,9 +1121,11 @@ public class MainFrame extends javax.swing.JFrame
     private javax.swing.JLabel labelDureeDisc;
     private javax.swing.JLabel labelDureeSig;
     private javax.swing.JLabel labelDureeSinc;
+    private javax.swing.JLabel labelFrequenceInfPasseBande;
     private javax.swing.JLabel labelFrequencePasseBas;
     private javax.swing.JLabel labelFrequencePasseHaut;
     private javax.swing.JLabel labelFrequenceSig;
+    private javax.swing.JLabel labelFrequenceSupPasseBande;
     private javax.swing.JLabel labelNomSig;
     private javax.swing.JLabel labelOffsetSig;
     private javax.swing.JLabel labelOffsetSinc;
@@ -1065,9 +1147,11 @@ public class MainFrame extends javax.swing.JFrame
     private javax.swing.JSpinner spinnerDureeDisc;
     private javax.swing.JSpinner spinnerDureeSig;
     private javax.swing.JSpinner spinnerDureeSinc;
+    private javax.swing.JSpinner spinnerFrequenceInfPasseBande;
     private javax.swing.JSpinner spinnerFrequencePasseBas;
     private javax.swing.JSpinner spinnerFrequencePasseHaut;
     private javax.swing.JSpinner spinnerFrequenceSig;
+    private javax.swing.JSpinner spinnerFrequenceSupPasseBande;
     private javax.swing.JSpinner spinnerOffsetSig;
     private javax.swing.JSpinner spinnerOffsetSinc;
     private javax.swing.JSpinner spinnerOrigineDisc;
