@@ -53,4 +53,45 @@ public class FiltrageLineaire
     {
         return Fourier.fourierI(filtrePasseBasFourier(signalTemporel, frequence), 0);
     }
+
+    /**
+     * Filtre un signal temporel à l'aide d'un filtre passe-haut pour une fréquence donnée
+     * @param signalTemporel le signal temporel à filtrer
+     * @param frequence la fréquence de coupure
+     * @return Le fourier du signal filtré
+     */
+    public static Signal filtrePasseHautFourier(Signal signalTemporel, double frequence)
+    {
+        if (!signalTemporel.estReel())
+            throw new ComplexSignalException("Le signal est complexe. Signal temporel attendu");
+
+        // Create array with filtering Nombres
+        int sample = signalTemporel.getDiscretiseur().getSample();
+        Nombre[] filterNombres = new Nombre[sample];
+        Arrays.fill(filterNombres, Nombre.UN);
+
+        int limitFreq = (int)Math.round(frequence);
+        int startIndex = (sample/2) - limitFreq;
+        int endIndex = (sample/2) + limitFreq;
+
+        // Rejected freq
+        for (int i = startIndex; i <= endIndex; ++i)
+            filterNombres[i] = Nombre.ZERO;
+
+        Signal fourier = Fourier.fourier(signalTemporel);
+        Signal filterSignal = new Signal(fourier.getDiscretiseur(), filterNombres);
+
+        return SignalOperations.produit(fourier, filterSignal);
+    }
+
+    /**
+     * Filtre un signal temporel à l'aide d'un filtre passe-haut pour une fréquence donnée
+     * @param signalTemporel le signal temporel à filtrer
+     * @param frequence la fréquence de coupure
+     * @return Le signal filtré (temporel)
+     */
+    public static Signal filtrePasseHaut(Signal signalTemporel, double frequence)
+    {
+        return Fourier.fourierI(filtrePasseHautFourier(signalTemporel, frequence), 0);
+    }
 }

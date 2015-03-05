@@ -3223,7 +3223,7 @@
                 </Component>
                 <Component class="javax.swing.JLabel" name="labelFrequencePasseBas">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Fr&#xe9;quence limite (Hz) :"/>
+                    <Property name="text" type="java.lang.String" value="Fr&#xe9;quence limite - BP (Hz) :"/>
                     <Property name="enabled" type="boolean" value="false"/>
                   </Properties>
                   <Constraints>
@@ -3260,7 +3260,7 @@
                 </Component>
                 <Component class="javax.swing.JLabel" name="labelFrequencePasseHaut">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Fr&#xe9;quence limite (Hz) :"/>
+                    <Property name="text" type="java.lang.String" value="Fr&#xe9;quence de coupure (Hz) :"/>
                     <Property name="enabled" type="boolean" value="false"/>
                   </Properties>
                   <Constraints>

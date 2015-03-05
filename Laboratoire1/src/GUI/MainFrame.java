@@ -553,7 +553,7 @@ public class MainFrame extends javax.swing.JFrame
         gridBagConstraints.weightx = 2.0;
         panelFiltrage.add(checkBoxPasseBas, gridBagConstraints);
 
-        labelFrequencePasseBas.setText("Fréquence limite (Hz) :");
+        labelFrequencePasseBas.setText("Fréquence limite - BP (Hz) :");
         labelFrequencePasseBas.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -587,7 +587,7 @@ public class MainFrame extends javax.swing.JFrame
         gridBagConstraints.weightx = 2.0;
         panelFiltrage.add(checkBoxPasseHaut, gridBagConstraints);
 
-        labelFrequencePasseHaut.setText("Fréquence limite (Hz) :");
+        labelFrequencePasseHaut.setText("Fréquence de coupure (Hz) :");
         labelFrequencePasseHaut.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -834,6 +834,14 @@ public class MainFrame extends javax.swing.JFrame
         this.plotSincTemp.clear();
         this.plotSincFreq.clear();
 
+        // Filtrage
+        this.plotFiltragePasseBasTemp.clear();
+        this.plotFiltragePasseBasFreq.clear();
+        this.plotFiltragePasseHautTemp.clear();
+        this.plotFiltragePasseHautFreq.clear();
+        this.plotFiltragePasseBandeTemp.clear();
+        this.plotFiltragePasseBandeFreq.clear();
+
         switch (this.tabbedPanePlots.getSelectedIndex())
         {
             case 0:
@@ -934,24 +942,39 @@ public class MainFrame extends javax.swing.JFrame
 
     private void buttonFilterLastSignalActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonFilterLastSignalActionPerformed
     {//GEN-HEADEREND:event_buttonFilterLastSignalActionPerformed
-        // Filtre passe-bas
-        if (this.checkBoxPasseBas.isSelected())
+        try
         {
-            double frequence = (double)this.spinnerFrequencePasseBas.getValue();
+            // Filtre passe-bas
+            if (this.checkBoxPasseBas.isSelected())
+            {
+                double frequence = (double)this.spinnerFrequencePasseBas.getValue();
 
-            // Domaine frequentiel
-            Signal fourierFiltre = FiltrageLineaire.filtrePasseBasFourier(lastSignal, frequence);
-            this.plotFiltragePasseBasFreq.addSignal(fourierFiltre.module(), lastSignalName, true);
+                // Domaine frequentiel
+                Signal fourierFiltre = FiltrageLineaire.filtrePasseBasFourier(lastSignal, frequence);
+                this.plotFiltragePasseBasFreq.addSignal(fourierFiltre.module(), lastSignalName, true);
 
-            // Domaine temporel
-            Signal signalFiltre = Fourier.fourierI(fourierFiltre, 0);
-            this.plotFiltragePasseBasTemp.addSignal(signalFiltre, lastSignalName, true);
+                // Domaine temporel
+                Signal signalFiltre = Fourier.fourierI(fourierFiltre, 0);
+                this.plotFiltragePasseBasTemp.addSignal(signalFiltre, lastSignalName, true);
+            }
+
+            // Filtre passe-haut
+            if (this.checkBoxPasseHaut.isSelected())
+            {
+                double frequenceCoupure = (double)this.spinnerFrequencePasseHaut.getValue();
+
+                // Domaine frequentiel
+                Signal fourierFiltre = FiltrageLineaire.filtrePasseHautFourier(lastSignal, frequenceCoupure);
+                this.plotFiltragePasseHautFreq.addSignal(fourierFiltre.module(), lastSignalName, true);
+
+                // Domaine temporel
+                Signal signalFiltre = Fourier.fourierI(fourierFiltre, 0);
+                this.plotFiltragePasseHautTemp.addSignal(signalFiltre, lastSignalName, true);
+            }
         }
-
-        // Filtre passe-haut
-        if (this.checkBoxPasseHaut.isSelected())
+        catch (Exception e)
         {
-
+            MessageBoxes.ShowError(this, e.getMessage(), "Une erreur s'est produite");
         }
     }//GEN-LAST:event_buttonFilterLastSignalActionPerformed
     //</editor-fold>
